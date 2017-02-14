@@ -32,6 +32,20 @@ module SDM
 			@icons = File.join(File.dirname(__FILE__).gsub('\\','/'),"FG_Icons/"); #puts @icons
 			@images = Dir[File.join(File.dirname(__FILE__).gsub('\\','/'),"BTW_Textures/*.{jpg,png,tif,bmp,gif,tga,epx}")];
 			@textures=[]; @images.each{|i| @textures<<File.basename(i,'.*')};
+			self.add_default_materials
+			@mod.commit_operation if @textures[0]
+			self.system_environment
+			@current_units=Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]
+			@@opt ||= "Tile"
+			self.dialog
+		end
+
+		# Get current system type
+		def system_environment
+			RUBY_PLATFORM =~ /(darwin)/ ? @font="Helvetica" : @font="Arial"
+		end
+
+		def add_default_materials
 			@mod.start_operation "Add Materials" if @textures[0]
 			@textures.each_with_index{|name,i|
 				unless @mod.materials[name]
@@ -39,21 +53,12 @@ module SDM
 					mat.texture = @images[i]
 				end
 			}
-			@mod.commit_operation if @textures[0]
-			RUBY_PLATFORM =~ /(darwin)/ ? @font="Helvetica" : @font="Arial"
-			@current_units=Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]
-			@@opt ||= "Tile"
-			self.dialog
 		end
 
-		# 单独的处理 材质的问题：为需要的地板贴需要的材质(到时候有一个材质的选择框，然后提供材质设置其大小的)
+		# 单独的处理 材质的问题：为需要的地板贴需要的材质(到时候有一个材质的选择框,提供设置材质大小选项)
 		def material
-
 		end
 
-
-
-		
 		def dialog
 			if Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]>1
 				Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]=2; #millimeters
