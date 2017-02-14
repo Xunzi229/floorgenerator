@@ -1,23 +1,4 @@
-require 'Sketchup'
-# ------------------  MENU SETUP ---------------------- #
-unless $sdm_tools_menu
-	$sdm_tools_menu = UI.menu("Plugins").add_submenu("SDM Tools")
-	$sdm_Edge_tools = $sdm_tools_menu.add_submenu("Edge Tool")
-	$sdm_Face_tools = $sdm_tools_menu.add_submenu("Face Tool")
-	$sdm_CorG_tools = $sdm_tools_menu.add_submenu("CorG Tool")
-	$sdm_Misc_tools = $sdm_tools_menu.add_submenu("Misc Tool")
-end
-unless file_loaded?(__FILE__)
-	$sdm_Face_tools.add_item('FloorGenerator') { Sketchup.active_model.select_tool SDM::SDM_FloorGenerator.new }
-	tb=UI::Toolbar.new("FlrGen")
-	cmd=UI::Command.new("FlrGen") { Sketchup.active_model.select_tool SDM::SDM_FloorGenerator.new }
-	cmd.small_icon=cmd.large_icon=File.join(File.dirname(__FILE__).gsub('\\','/'),"FG_Icons/Brick.jpg")
-	cmd.tooltip="Floor Generator";tb.add_item cmd;tb.show unless tb.get_last_state==0
-	file_loaded(__FILE__)
-end
-# ------------------------------------------------------ #
 module SDM
-
 	class SDM_FloorGenerator
 
 		@@dlg=@@opt=nil
@@ -59,6 +40,7 @@ module SDM
 		def material
 		end
 
+		# options 用来检索定义模型的选项设置的选项管理器。
 		def dialog
 			if Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]>1
 				Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]=2; #millimeters
@@ -209,9 +191,9 @@ module SDM
 
 								<fieldset>
 									<legend style='font-size:125%;color:red'><b> 材质选项 </b></legend>
-									<input type='file' accept='image/jpeg' size=6  /><br>
-								  <input type='text' name='MAL' value=''   title='这里输入文字' size=6 onChange='optionchanged(name,value)' /> : 材质长度 <br>
-									<input type='text' name='MAW' value='' size=6 onChange='optionchanged(name,value)' /> : 材质宽度 <br>
+									<input type='file' name='MAD' value='@mad' accept='image/jpeg' size=6  onChange='optionchanged(name,value)'/><br>
+								  <input type='text' name='MAL' value='#{@mal}'   title='这里输入文字' size=6 onChange='optionchanged(name,value)' /> : 材质长度 <br>
+									<input type='text' name='MAW' value='#{@maw}' size=6 onChange='optionchanged(name,value)' /> : 材质宽度 <br>
 								</fieldset>
 
 
@@ -261,7 +243,13 @@ module SDM
 						when "RIn" then @rin=val.to_l;@rin=[@rin,0].max
 						when "RIx" then @rix=val.to_l;@rix=[@rix,@GD].min
 						when "BVS" then @bvs=val.to_l;
+						
+						#获取设置材质的一些信息 图片的地址、长、宽
+						when "MAD" then @mad=val
+						when "MAL" then @mal=val.to_l
+						when "MAW" then @maw=val.to_l
 					end
+					select_is_image
 					tbx=@GX.to_s.gsub('"','\"'); tby=@GY.to_s.gsub('"','\"'); twa=@twa.to_s; @txs=nil;rds=@rds.to_s
 					(txw,txh=@tsz.split(","); if txh then @txs=[txw.to_l,txh.to_l] else @txs=@tsz.to_l end) if @tsz && @tsz != "0"
 					gw=@GW.to_s.gsub('"','\"'); gd=@GD.to_s.gsub('"','\"');txs=@tsz.gsub('"','\"') if @tsz;bwb=@bwb.to_s
@@ -283,15 +271,30 @@ module SDM
 				
 				@@dlg.set_on_close { onCancel(nil,nil) unless @dlg_update }
 				
-				RUBY_PLATFORM =~ /(darwin)/ ? @@dlg.show_modal() : @@dlg.show()
-				
+				RUBY_PLATFORM =~ /(darwin)/ ? @@dlg.show_modal() : @@dlg.show()		
 			end
 		end
-		
+
+		# 判断选择的是否是图片 和 该图片是否存在
+		def select_is_image
+			if @mad != nil
+				exname = File.extname(@mad)
+				if(File.exist?(@mad))
+					if !(exname == ".jpg" || exname == ".png")
+						@mad = nil
+						UI.messagebox("仅支持.png/.jpg 格式图片")
+					end
+				else
+					UI.messagebox("该图片不存在")
+				end
+			end
+		end
+
 		# 当鼠标移动的时候调用这个方法
+		# refresh 用于立即刷新视图
 		def onMouseMove(flags, x, y, view)
 			@ip.pick view,x,y; view.tooltip = @ip.tooltip; view.refresh
-			Sketchup::set_status_text "选择网格模式,位置:#{x}:#{y}, change options or sizes if needed then select Face for #{@@opt} pattern"
+			Sketchup::set_status_text "[#{x}:#{y}], 选择网格模式,change options or sizes if needed then select Face for #{@@opt} pattern"
 		end
 		
 		#当按下鼠标左键时，SketchUp会调用onLButtonDown方法。
@@ -1442,6 +1445,5 @@ module SDM
 			cx = cx / area;cy = cy / area;cz = cz / area;
 			Geom::Point3d.new(cx,cy,cz)
 		end
-	end
-	
+	end	
 end
