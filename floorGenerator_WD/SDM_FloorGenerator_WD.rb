@@ -1,3 +1,4 @@
+Sketchup::require File.join(File.dirname(__FILE__),"import_material.rb")
 module SDM
 	class SDM_FloorGenerator
 
@@ -11,8 +12,6 @@ module SDM
 			@ip=Sketchup::InputPoint.new
 			@colors=Sketchup::Color.names
 			@icons = File.join(File.dirname(__FILE__).gsub('\\','/'),"FG_Icons/"); #puts @icons
-			@images = Dir[File.join(File.dirname(__FILE__).gsub('\\','/'),"BTW_Textures/*.{jpg,png,tif,bmp,gif,tga,epx}")];
-			@textures=[]; @images.each{|i| @textures<<File.basename(i,'.*')};
 			self.add_default_materials
 			@mod.commit_operation if @textures[0]
 			self.system_environment
@@ -27,6 +26,8 @@ module SDM
 		end
 
 		def add_default_materials
+			@images = Dir[File.join(File.dirname(__FILE__).gsub('\\','/'),"BTW_Textures/*.{jpg,png,tif,bmp,gif,tga,epx}")];
+			@textures=[]; @images.each{|i| @textures<<File.basename(i,'.*')};
 			@mod.start_operation "Add Materials" if @textures[0]
 			@textures.each_with_index{|name,i|
 				unless @mod.materials[name]
@@ -40,18 +41,41 @@ module SDM
 		def material
 		end
 
+		def  import_file_material
+		  # unless @mad.nil?
+		  # 	mater_path = @mad.split('\\').join("/")
+			 #  @textures << "ma"+File.basename(mater_path,".*").to_s
+			 #  m = @mod.materials.add "ADS"
+			 #  puts "......................................."
+			 #  p mater_path
+			 #  p mater_path.class
+			 #  puts "......................................."
+	   #    m.texture = mater_path
+	   #      # text.size= [Format.mm_to_inches(@mal.to_i),Format.mm_to_inches(@maw.to_i)]
+	   #  end
+		end
+
+		def meter name,path
+			@mod.materials.each do |material|
+			 if material.display_name == name
+			 		material.texture = path
+			 		return material
+			 	end
+			 end
+		end
+
 		# options 用来检索定义模型的选项设置的选项管理器。
 		def dialog
 			if Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]>1
 				Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]=2; #millimeters
-				@defaults=["Corner","0","Current","No","No","50","No","No","0","No","No","30","150","50","6","6","3","No","Yes","0","0","3","6"] if @@opt=="Brick" || @@opt=="Wedge";
-				@defaults=["Corner","0","Current","No","No","0","No","No","0","No","No","30","300","300","6","3","3","No","Yes","0","0","3","6"] if @@opt=="Tile" || @@opt=="HpScth4"; 
-				@defaults=["Corner","0","Current","Yes","Yes","0","No","No","0","No","No","30","2000","100","3","3","3","No","Yes","0","0","3","6"] if @@opt=="Wood"; 
-				@defaults=["Corner","0","Current","No","No","0","No","No","0","No","No","30","150","50","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="Tweed"
-				@defaults=["Corner","0","Current","No","No","0","No","No","0","No","No","30","200","100","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="Hbone" || @@opt=="BsktWv" || @@opt=="I_Block" ; 
-				@defaults=["Center","0","Current","No","No","0","No","No","0","No","No","30","300","300","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="HpScth1" || @@opt=="HpScth2"; 
-				@defaults=["Corner","0","Current","No","No","0","No","No","0","No","No","30","600","600","6","3","3","No","Yes","0","0","3","6"] if @@opt=="HpScth3"; 
-				@defaults=["Center","0","Current","No","No","0","No","No","0","No","No","30","300","0","12","6","3","No","Yes","0","0","3","6"] if @@opt=="Hexgon" || @@opt=="Octgon" || @@opt=="IrPoly" || @@opt=="Diamonds"; 
+				@defaults=["Corner","0","Rand_Tex","No","No","50","No","No","0","No","No","30","150","50","6","6","3","No","Yes","0","0","3","6"] if @@opt=="Brick" || @@opt=="Wedge";
+				@defaults=["Corner","0","Rand_Tex","No","No","0","No","No","0","No","No","30","300","300","6","3","3","No","Yes","0","0","3","6"] if @@opt=="Tile" || @@opt=="HpScth4"; 
+				@defaults=["Corner","0","Rand_Tex","Yes","Yes","0","No","No","0","No","No","30","2000","100","3","3","3","No","Yes","0","0","3","6"] if @@opt=="Wood"; 
+				@defaults=["Corner","0","Rand_Tex","No","No","0","No","No","0","No","No","30","150","50","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="Tweed"
+				@defaults=["Corner","0","Rand_Tex","No","No","0","No","No","0","No","No","30","200","100","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="Hbone" || @@opt=="BsktWv" || @@opt=="I_Block" ; 
+				@defaults=["Center","0","Rand_Tex","No","No","0","No","No","0","No","No","30","300","300","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="HpScth1" || @@opt=="HpScth2"; 
+				@defaults=["Corner","0","Rand_Tex","No","No","0","No","No","0","No","No","30","600","600","6","3","3","No","Yes","0","0","3","6"] if @@opt=="HpScth3"; 
+				@defaults=["Center","0","Rand_Tex","No","No","0","No","No","0","No","No","30","300","0","12","6","3","No","Yes","0","0","3","6"] if @@opt=="Hexgon" || @@opt=="Octgon" || @@opt=="IrPoly" || @@opt=="Diamonds"; 
 			else
 				Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]=0; #inches
 				@defaults=["Corner","0","Current","No","No","50","No","No","0","No","No","30","6.0","2.0","0.25","0.25","3","No","Yes","0","0","0.125","0.25"] if @@opt=="Brick" || @@opt=="Wedge"; 
@@ -89,7 +113,7 @@ module SDM
 										<option value='Tile' #{@@opt=='Tile' ? 'selected' : ''}>Tile</option>
 										<option value='Wood' #{@@opt=='Wood' ? 'selected' : ''}>Wood</option>
 										<option value='Tweed' #{@@opt=='Tweed' ? 'selected' : ''}>Tweed</option>
-										<option value='Hbone' #{@@opt=='Hbone' ? 'selected' : ''}>Herringbone</option>
+										<!-- <option value='Hbone' #{@@opt=='Hbone' ? 'selected' : ''}>Herringbone</option> 
 										<option value='BsktWv' #{@@opt=='BsktWv' ? 'selected' : ''}>Basket Weave</option>
 										<option value='HpScth1' #{@@opt=='HpScth1' ? 'selected' : ''}>Hopscotch1</option>
 										<option value='HpScth2' #{@@opt=='HpScth2' ? 'selected' : ''}>HopScotch2</option>
@@ -100,8 +124,7 @@ module SDM
 										<option value='Octgon' #{@@opt=='Octgon' ? 'selected' : ''}>Octagons</option>
 										<option value='Wedge' #{@@opt=='Wedge' ? 'selected' : ''}>Wedges</option>
 										<option value='I_Block' #{@@opt=='I_Block' ? 'selected' : ''}>I_Block</option>
-										<option value='Diamonds' #{@@opt=='Diamonds' ? 'selected' : ''}>Diamonds</option>
-										<option value='Reset'>Reset</option>
+										<option value='Diamonds' #{@@opt=='Diamonds' ? 'selected' : ''}>Diamonds</option> -->
 									</select>
 									<!-- Pattern Icons -->
 									#{@@opt=='Brick' ? "<img src='#{@icons}Brick.jpg' align='top'/>" : ''}
@@ -150,11 +173,11 @@ module SDM
 										<option value='45' #{@rot=='45' ? 'selected' : ''}>45</option>
 										<option value='90' #{@rot=='90' ? 'selected' : ''}>90</option>
 									</select> : 网格旋转度<br>
-									<select name='MAT' style='width:90px' onChange='optionchanged(name,value)'>
-										<option value='Current' #{@app=='Current' ? 'selected' : ''}>Current</option>
-										<option value='Rand_Clr' #{@app=='Rand_Clr' ? 'selected' : ''}>Rand_Clr</option>
-										<option value='Rand_Tex' #{@app=='Rand_Tex' ? 'selected' : ''}>Rand_Tex</option><br>
-									</select> : 材质文件<br><hr>
+						   <!--   <select name='MAT' style='width:90px' onChange='optionchanged(name,value)'>
+										<option value='Current' #{@app=='Current' ? 'selected' : ''}>当前材质</option>
+										<option value='Rand_Clr' #{@app=='Rand_Clr' ? 'selected' : ''}>随机颜色</option>
+										<option value='Rand_Tex' #{@app=='Rand_Tex' ? 'selected' : ''}>自定义材质</option><br>
+									</select> : 材质文件<br><hr>  -->
 									#{@@opt!='Wood' ? '<!--' : ''}
 									<input type='checkbox' name='FLW' value='Yes' #{@flw=='Yes' ? 'checked' : ''} onClick='optionchanged(name,value)'>Fixed Length<br>
 									<input type='checkbox' name='FWW' value='Yes' #{@fww=='Yes' ? 'checked' : ''} onClick='optionchanged(name,value)'>Fixed Width<br>
@@ -190,16 +213,18 @@ module SDM
 								</fieldset>
 
 								<fieldset>
-									<legend style='font-size:125%;color:red'><b> 材质选项 </b></legend>
-									<input type='file' name='MAD' value='@mad' accept='image/jpeg' size=6  onChange='optionchanged(name,value)'/><br>
-								  <input type='text' name='MAL' value='#{@mal}'   title='这里输入文字' size=6 onChange='optionchanged(name,value)' /> : 材质长度 <br>
+									<legend style='font-size:125%;color:red'><b> 材质选项(可选) </b></legend>
+									<input type='file' name='MAD' value='#{@mad}' accept='image/jpeg' size=6  onChange='optionchanged(name,value)'/><br>
+
+								  <input type='text' name='MAL' value='#{@mal}' size=6 onChange='optionchanged(name,value)' /> : 材质长度 <br>
+
 									<input type='text' name='MAW' value='#{@maw}' size=6 onChange='optionchanged(name,value)' /> : 材质宽度 <br>
+
 								</fieldset>
-
-
-								<!--
-								<br><input type='submit' name='submit' value='Update' />  #{@@opt} Options
-								-->
+								<fieldset>
+									<button type='button' style='width:100%;margin-bottom: 10px;'>确定</button>
+									<button type='button' onclick='patternchanged(value)' style='width:100%;'>重新设置</button>
+								</fieldset
 							</form>
 							<script type='text/javascript'>
 								function patternchanged(value)
@@ -246,9 +271,10 @@ module SDM
 						
 						#获取设置材质的一些信息 图片的地址、长、宽
 						when "MAD" then @mad=val
-						when "MAL" then @mal=val.to_l
-						when "MAW" then @maw=val.to_l
+						when "MAL" then @mal=val
+						when "MAW" then @maw=val
 					end
+					@app = "Rand_Tex"
 					select_is_image
 					tbx=@GX.to_s.gsub('"','\"'); tby=@GY.to_s.gsub('"','\"'); twa=@twa.to_s; @txs=nil;rds=@rds.to_s
 					(txw,txh=@tsz.split(","); if txh then @txs=[txw.to_l,txh.to_l] else @txs=@tsz.to_l end) if @tsz && @tsz != "0"
@@ -268,10 +294,12 @@ module SDM
 					end
 					@dlg_update=true; @@dlg.close; @@dlg=nil; @dlg_update=false; self.dialog
 				}
+
 				
 				@@dlg.set_on_close { onCancel(nil,nil) unless @dlg_update }
 				
-				RUBY_PLATFORM =~ /(darwin)/ ? @@dlg.show_modal() : @@dlg.show()		
+				RUBY_PLATFORM =~ /(darwin)/ ? @@dlg.show_modal() : @@dlg.show()
+				
 			end
 		end
 
@@ -281,7 +309,7 @@ module SDM
 				exname = File.extname(@mad)
 				if(File.exist?(@mad))
 					if !(exname == ".jpg" || exname == ".png")
-						@mad = nil
+						@mad
 						UI.messagebox("仅支持.png/.jpg 格式图片")
 					end
 				else
@@ -303,7 +331,6 @@ module SDM
 			ph = view.pick_helper; 
 			ph.do_pick x,y; 
 			face=ph.best_picked; @cp=@ip.position;
-			puts "@cp#{@cp}"
 			if face.is_a?(Sketchup::Face)
 				dmax = [@GX,@GY].max; 
 				if (face.bounds.diagonal >= dmax*1.5); # 确保矩形是大到足以进行细分
@@ -315,7 +342,7 @@ module SDM
 						end
 					end
 					# 模型改变的开始，可用于撤销到当前的位置，参数提供了提示操作的作用
-					@mod.start_operation "铺平地板",true
+					@mod.start_operation "网格地板",true
 					eye = @vue.camera.eye; ctr=face.bounds.center;srand(@rds);
 					face.reverse! if ((ctr.vector_to(eye)).angle_between(face.normal))>Math::PI/2.0
 					@edges=face.edges;@norm=face.normal; l=0; fpts=[]; lpts=[]
@@ -371,6 +398,8 @@ module SDM
 				else
 					UI.messagebox "This face is to small for a #{@GX} X #{@GY} #{@@opt} pattern.";return false
 				end
+			else
+				puts "请选择一个面！"
 			end
 		end
 
@@ -390,7 +419,7 @@ module SDM
 		end
 		 
 		def draw(view)
-			if( @ip.valid? && @ip.display? )
+			if(@ip.valid? && @ip.display? )
 				@ip.draw(view)
 			end			
 		end
@@ -400,16 +429,29 @@ module SDM
 		##################################################
 		#	
 		def grid_data(face)
-		
-			pts=face.outer_loop.vertices.collect{|v| v.position}
+			if(@mad != nil && @mal != nil && @maw != nil)
+				path = @mad.split('\\').join("/")
+				@textures_name = SDMD::ImportMaterial.new(path,@mal,@maw).import_file_material
+				@mal,@maw = nil
+			else
+				puts "mad1:#{@mad};mal1:#{@mal};maw1:#{@maw}"
+			end
+			# pts获取该面的所有的外边界交点返回一个数组(collect)
+			pts=face.outer_loop.vertices.collect{|v| v.position}  
 			ndx=0; cp=1e6; ls=0.0; lp=pts.length-1; # assume regular 4 sided rectangle
-			
+
 			if @spt == "Corner"
 				pts.each_with_index{|p,i| d=p.distance(@cp);ndx=i if d<cp; cp=[cp,d].min}; @cor=pts[ndx]
 			else
 				pts.each_with_index{|p,i| d=p.distance(pts[i-1])+p.distance(pts[i-lp]); ndx=i if d>ls; ls=[ls,d].max}
 			end
-			
+
+			# 此地方可以声明开始的起点
+			@cor  = @cp
+
+			#ctr 是该点的中心位置
+			#判断该中心点是否在面上，如果不在面上 就计算该点到该面的最近距离的点
+			# @v1 获取点到点的单位向量
 				ctr=face.bounds.center; ctr=ctr.project_to_plane face.plane unless ctr.on_plane? face.plane
 				d1=pts[ndx].distance(pts[ndx-lp]); d2=pts[ndx].distance(pts[ndx-1]);
 				if d1 >= d2
@@ -1223,14 +1265,14 @@ module SDM
 			fg=@ent.add_group face;
 			(tr = Geom::Transformation.new(cpt.vector_to(@cor)); 
 			tge.transform_entities(tr,tge.to_a )) if @spt=="Corner"
-			@egrp=@ent.add_group;@ege=@egrp.entities;@egt=@egrp.transformation
+			@egrp=@ent.add_group; @ege=@egrp.entities;@egt=@egrp.transformation
 			Sketchup::set_status_text "Intersecting Grid and Face"
 			tge.intersect_with true,tgt,@ege,@egt,false,fg
 			fg.explode; tg.erase! unless $sdm_debug;
 		end
 		#
 		########################################################
-		#	Common sub-routines
+		#	Common sub-routines  这里可以来定义 网格中的材质文件
 		########################################################
 		#	
 		def paint_it(f)
@@ -1246,7 +1288,7 @@ module SDM
 				end
 				f.material = @mod.materials[name]
 			elsif @app=="Rand_Tex"
-				i=rand(@textures.length);name = @textures[i]
+				i= rand(@textures.length); name = @textures_name
 				unless @mod.materials[name]
 					mat = @mod.materials.add(name)
 					mat.texture = @images[i]
@@ -1411,7 +1453,7 @@ module SDM
 		
 		def progress_bar(cnt,max,opt)
 			pct = (cnt*100)/max; pct=[pct,100].min; @pb = "|"*pct
-			Sketchup::set_status_text(@pb + " #{pct}% of #{opt} done.")
+			Sketchup::set_status_text(@pb + " #{pct}% of #{opt} done.(正在生成，请勿强行点击)")
 		end
 	
 		def makeaface(p1,p2,fn)
@@ -1445,5 +1487,5 @@ module SDM
 			cx = cx / area;cy = cy / area;cz = cz / area;
 			Geom::Point3d.new(cx,cy,cz)
 		end
-	end	
+	end
 end
