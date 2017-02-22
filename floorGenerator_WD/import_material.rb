@@ -13,6 +13,8 @@ module SDMD
 			File.basename(@path)
 		end
 
+=begin
+# 导入图片到指定位置
 		def  import_file_material
 		  unless @path.nil?
 			  ter = "ma"+File.basename(@path,".*").to_s
@@ -25,9 +27,10 @@ module SDMD
 	    delete_material_file
 	    return ter
 		end
+=end
 
 		def copy_file
-			port_dir = File.join(File.dirname(__FILE__),"temp_png")
+			port_dir = File.join(File.dirname(__FILE__),"BTW_Textures")
 			FileUtils.cp @path,port_dir
 			return port_dir
 		end

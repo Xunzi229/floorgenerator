@@ -68,14 +68,14 @@ module SDM
 		def dialog
 			if Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]>1
 				Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]=2; #millimeters
-				@defaults=["Corner","0","Rand_Tex","No","No","50","No","No","0","No","No","30","150","50","6","6","3","No","Yes","0","0","3","6"] if @@opt=="Brick" || @@opt=="Wedge";
-				@defaults=["Corner","0","Rand_Tex","No","No","0","No","No","0","No","No","30","300","300","6","3","3","No","Yes","0","0","3","6"] if @@opt=="Tile" || @@opt=="HpScth4"; 
-				@defaults=["Corner","0","Rand_Tex","Yes","Yes","0","No","No","0","No","No","30","2000","100","3","3","3","No","Yes","0","0","3","6"] if @@opt=="Wood"; 
-				@defaults=["Corner","0","Rand_Tex","No","No","0","No","No","0","No","No","30","150","50","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="Tweed"
-				@defaults=["Corner","0","Rand_Tex","No","No","0","No","No","0","No","No","30","200","100","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="Hbone" || @@opt=="BsktWv" || @@opt=="I_Block" ; 
-				@defaults=["Center","0","Rand_Tex","No","No","0","No","No","0","No","No","30","300","300","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="HpScth1" || @@opt=="HpScth2"; 
-				@defaults=["Corner","0","Rand_Tex","No","No","0","No","No","0","No","No","30","600","600","6","3","3","No","Yes","0","0","3","6"] if @@opt=="HpScth3"; 
-				@defaults=["Center","0","Rand_Tex","No","No","0","No","No","0","No","No","30","300","0","12","6","3","No","Yes","0","0","3","6"] if @@opt=="Hexgon" || @@opt=="Octgon" || @@opt=="IrPoly" || @@opt=="Diamonds"; 
+				@defaults=["Corner","0","Current","No","No","50","No","No","0","No","No","30","150","50","6","6","3","No","Yes","0","0","3","6"] if @@opt=="Brick" || @@opt=="Wedge";
+				@defaults=["Corner","0","Current","No","No","0","No","No","0","No","No","30","300","300","6","3","3","No","Yes","0","0","3","6"] if @@opt=="Tile" || @@opt=="HpScth4"; 
+				@defaults=["Corner","0","Current","Yes","Yes","0","No","No","0","No","No","30","2000","100","3","3","3","No","Yes","0","0","3","6"] if @@opt=="Wood"; 
+				@defaults=["Corner","0","Current","No","No","0","No","No","0","No","No","30","150","50","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="Tweed"
+				@defaults=["Corner","0","Current","No","No","0","No","No","0","No","No","30","200","100","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="Hbone" || @@opt=="BsktWv" || @@opt=="I_Block" ; 
+				@defaults=["Center","0","Current","No","No","0","No","No","0","No","No","30","300","300","12","6","3","Yes","Yes","0","0","3","6"] if @@opt=="HpScth1" || @@opt=="HpScth2"; 
+				@defaults=["Corner","0","Current","No","No","0","No","No","0","No","No","30","600","600","6","3","3","No","Yes","0","0","3","6"] if @@opt=="HpScth3"; 
+				@defaults=["Center","0","Current","No","No","0","No","No","0","No","No","30","300","0","12","6","3","No","Yes","0","0","3","6"] if @@opt=="Hexgon" || @@opt=="Octgon" || @@opt=="IrPoly" || @@opt=="Diamonds"; 
 			else
 				Sketchup.active_model.options["UnitsOptions"]["LengthUnit"]=0; #inches
 				@defaults=["Corner","0","Current","No","No","50","No","No","0","No","No","30","6.0","2.0","0.25","0.25","3","No","Yes","0","0","0.125","0.25"] if @@opt=="Brick" || @@opt=="Wedge"; 
@@ -431,10 +431,10 @@ module SDM
 		def grid_data(face)
 			if(@mad != nil && @mal != nil && @maw != nil)
 				path = @mad.split('\\').join("/")
-				@textures_name = SDMD::ImportMaterial.new(path,@mal,@maw).import_file_material
-				@mal,@maw = nil
-			else
-				puts "mad1:#{@mad};mal1:#{@mal};maw1:#{@maw}"
+				@textures_name = SDMD::ImportMaterial.new(path,@mal,@maw)
+			self.add_default_materials
+			@textures_name.delete_material_file
+			@app = @textures_name.nil? ? "Current" : "Rand_Tex"
 			end
 			# pts获取该面的所有的外边界交点返回一个数组(collect)
 			pts=face.outer_loop.vertices.collect{|v| v.position}  
@@ -1288,7 +1288,7 @@ module SDM
 				end
 				f.material = @mod.materials[name]
 			elsif @app=="Rand_Tex"
-				i= rand(@textures.length); name = @textures_name
+				i= rand(@textures.length); name = @textures[i];@textures.drop(1)
 				unless @mod.materials[name]
 					mat = @mod.materials.add(name)
 					mat.texture = @images[i]
